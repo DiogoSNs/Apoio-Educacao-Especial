@@ -1,6 +1,7 @@
 "use client";
 
 import Cabecalho from "@/components/Cabecalho";
+import CampoBusca from "@/components/CampoBusca";
 import CardAluno from "@/components/CardAluno";
 import FormularioNovoAluno from "@/components/FormularioNovoAluno";
 import PainelRelatorio from "@/components/PainelRelatorio";
@@ -14,6 +15,8 @@ export default function PaginaInicial() {
     setAlunoSelecionadoId,
     filtroStatus,
     setFiltroStatus,
+    busca,
+    definirBusca,
     gerandoIA,
     adicionarAnotacao,
     removerAnotacao,
@@ -46,6 +49,8 @@ export default function PaginaInicial() {
                 </p>
               </div>
 
+              <CampoBusca valor={busca} aoMudar={definirBusca} />
+
               <div className="flex flex-wrap gap-1.5">
                 {[
                   { valor: "todos", rotulo: "Todos" },
@@ -71,7 +76,7 @@ export default function PaginaInicial() {
 
             {alunosFiltrados.length === 0 ? (
               <div className="bg-white border border-slate-200 rounded-lg p-8 text-center text-sm text-slate-500">
-                Nenhum aluno encontrado para este filtro.
+                Nenhum aluno encontrado para esta busca ou filtro.
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
