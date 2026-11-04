@@ -21,6 +21,7 @@ export default function PaginaInicial() {
     adicionarAnotacao,
     removerAnotacao,
     adicionarNovoAluno,
+    excluirAluno,
     acionarGeracaoIA,
     atualizarTextoRelatorio,
     aprovarRelatorio,
@@ -95,6 +96,7 @@ export default function PaginaInicial() {
             aluno={alunoSelecionado}
             gerandoIA={gerandoIA}
             aoVoltar={() => setAlunoSelecionadoId(null)}
+            aoExcluirAluno={excluirAluno}
             aoAdicionarAnotacao={adicionarAnotacao}
             aoRemoverAnotacao={removerAnotacao}
             aoGerarIA={acionarGeracaoIA}
