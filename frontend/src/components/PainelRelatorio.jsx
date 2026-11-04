@@ -5,6 +5,7 @@ import {
   FiArrowLeft,
   FiCheck,
   FiCpu,
+  FiDownload,
   FiFileText,
   FiList,
   FiTrash2,
@@ -12,11 +13,13 @@ import {
 import BadgeStatus from "./BadgeStatus";
 import FormularioAnotacao from "./FormularioAnotacao";
 import MensagemFeedback from "./MensagemFeedback";
+import { baixarRelatorio } from "@/services/exportarRelatorio";
 
 export default function PainelRelatorio({
   aluno,
   gerandoIA,
   aoVoltar,
+  aoExcluirAluno,
   aoAdicionarAnotacao,
   aoRemoverAnotacao,
   aoGerarIA,
@@ -42,6 +45,16 @@ export default function PainelRelatorio({
         texto: "Rascunho gerado com base nas anotações! Revise o texto abaixo e clique em Aprovar.",
       });
     });
+  }
+
+  function pedirExclusao() {
+    const confirmou = window.confirm(
+      "Excluir " + aluno.nome + "? As observações e o relatório dele também serão apagados."
+    );
+
+    if (confirmou) {
+      aoExcluirAluno();
+    }
   }
 
   function handleAprovar() {
@@ -86,6 +99,15 @@ export default function PainelRelatorio({
               <strong>Atendimento:</strong> {aluno.atendimento}
             </p>
           </div>
+
+          <button
+            type="button"
+            onClick={pedirExclusao}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-red-700 border border-red-200 hover:bg-red-50 px-3 py-1.5 rounded-md cursor-pointer"
+          >
+            <FiTrash2 className="w-4 h-4" />
+            Excluir aluno
+          </button>
         </div>
 
         <div className="flex gap-2 mt-5 pt-4 border-t border-slate-200">
@@ -205,7 +227,17 @@ export default function PainelRelatorio({
             />
           </div>
 
-          <div className="flex items-center justify-end pt-2">
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => baixarRelatorio(aluno)}
+              disabled={!aluno.relatorioTexto.trim()}
+              className="inline-flex items-center gap-1.5 bg-white border border-slate-300 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 text-sm font-medium px-4 py-2 rounded-md transition-colors cursor-pointer"
+            >
+              <FiDownload className="w-4 h-4" />
+              Baixar .txt
+            </button>
+
             <button
               type="button"
               onClick={handleAprovar}

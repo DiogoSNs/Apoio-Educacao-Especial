@@ -8,14 +8,18 @@ export function useGestaoRelatorios() {
   const [alunos, setAlunos] = useState(alunosIniciaisMock);
   const [alunoSelecionadoId, setAlunoSelecionadoId] = useState(null);
   const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [busca, definirBusca] = useState("");
   const [gerandoIA, setGerandoIA] = useState(false);
 
   const alunoSelecionado =
     alunos.find((aluno) => aluno.id === alunoSelecionadoId) || null;
 
   const alunosFiltrados = alunos.filter((aluno) => {
-    if (filtroStatus === "todos") return true;
-    return aluno.statusRelatorio === filtroStatus;
+    const textoBusca = busca.trim().toLowerCase();
+    const nomeConfere = aluno.nome.toLowerCase().includes(textoBusca);
+    const statusConfere = filtroStatus === "todos" || aluno.statusRelatorio === filtroStatus;
+
+    return nomeConfere && statusConfere;
   });
 
   function obterDataHoje() {
@@ -76,6 +80,15 @@ export function useGestaoRelatorios() {
     };
 
     setAlunos([novoAluno, ...alunos]);
+  }
+
+  function excluirAluno() {
+    if (!alunoSelecionado) return;
+
+    const listaAtualizada = alunos.filter((aluno) => aluno.id !== alunoSelecionado.id);
+
+    setAlunos(listaAtualizada);
+    setAlunoSelecionadoId(null);
   }
 
   function acionarGeracaoIA(callbackSucesso) {
@@ -146,10 +159,13 @@ export function useGestaoRelatorios() {
     setAlunoSelecionadoId,
     filtroStatus,
     setFiltroStatus,
+    busca,
+    definirBusca,
     gerandoIA,
     adicionarAnotacao,
     removerAnotacao,
     adicionarNovoAluno,
+    excluirAluno,
     acionarGeracaoIA,
     atualizarTextoRelatorio,
     aprovarRelatorio,
