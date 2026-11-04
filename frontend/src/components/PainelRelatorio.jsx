@@ -5,6 +5,7 @@ import {
   FiArrowLeft,
   FiCheck,
   FiCpu,
+  FiDownload,
   FiFileText,
   FiList,
   FiTrash2,
@@ -12,6 +13,7 @@ import {
 import BadgeStatus from "./BadgeStatus";
 import FormularioAnotacao from "./FormularioAnotacao";
 import MensagemFeedback from "./MensagemFeedback";
+import { baixarRelatorio } from "@/services/exportarRelatorio";
 
 export default function PainelRelatorio({
   aluno,
@@ -225,7 +227,17 @@ export default function PainelRelatorio({
             />
           </div>
 
-          <div className="flex items-center justify-end pt-2">
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => baixarRelatorio(aluno)}
+              disabled={!aluno.relatorioTexto.trim()}
+              className="inline-flex items-center gap-1.5 bg-white border border-slate-300 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed text-slate-700 text-sm font-medium px-4 py-2 rounded-md transition-colors cursor-pointer"
+            >
+              <FiDownload className="w-4 h-4" />
+              Baixar .txt
+            </button>
+
             <button
               type="button"
               onClick={handleAprovar}
