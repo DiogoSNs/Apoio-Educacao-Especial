@@ -82,6 +82,15 @@ export function useGestaoRelatorios() {
     setAlunos([novoAluno, ...alunos]);
   }
 
+  function excluirAluno() {
+    if (!alunoSelecionado) return;
+
+    const listaAtualizada = alunos.filter((aluno) => aluno.id !== alunoSelecionado.id);
+
+    setAlunos(listaAtualizada);
+    setAlunoSelecionadoId(null);
+  }
+
   function acionarGeracaoIA(callbackSucesso) {
     if (!alunoSelecionado) return;
     setGerandoIA(true);
@@ -156,6 +165,7 @@ export function useGestaoRelatorios() {
     adicionarAnotacao,
     removerAnotacao,
     adicionarNovoAluno,
+    excluirAluno,
     acionarGeracaoIA,
     atualizarTextoRelatorio,
     aprovarRelatorio,
