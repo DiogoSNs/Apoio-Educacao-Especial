@@ -17,6 +17,7 @@ export default function PainelRelatorio({
   aluno,
   gerandoIA,
   aoVoltar,
+  aoExcluirAluno,
   aoAdicionarAnotacao,
   aoRemoverAnotacao,
   aoGerarIA,
@@ -42,6 +43,16 @@ export default function PainelRelatorio({
         texto: "Rascunho gerado com base nas anotações! Revise o texto abaixo e clique em Aprovar.",
       });
     });
+  }
+
+  function pedirExclusao() {
+    const confirmou = window.confirm(
+      "Excluir " + aluno.nome + "? As observações e o relatório dele também serão apagados."
+    );
+
+    if (confirmou) {
+      aoExcluirAluno();
+    }
   }
 
   function handleAprovar() {
@@ -86,6 +97,15 @@ export default function PainelRelatorio({
               <strong>Atendimento:</strong> {aluno.atendimento}
             </p>
           </div>
+
+          <button
+            type="button"
+            onClick={pedirExclusao}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-red-700 border border-red-200 hover:bg-red-50 px-3 py-1.5 rounded-md cursor-pointer"
+          >
+            <FiTrash2 className="w-4 h-4" />
+            Excluir aluno
+          </button>
         </div>
 
         <div className="flex gap-2 mt-5 pt-4 border-t border-slate-200">
