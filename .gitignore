@@ -1,0 +1,15 @@
+# Python / Backend
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.env
+
+# Node / Frontend
+node_modules/
+.next/
+
+# Arquivos locais da disciplina
+docs/
+.DS_Store
