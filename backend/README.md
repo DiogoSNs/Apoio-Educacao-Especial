@@ -1,4 +1,4 @@
-# Backend — API Apoio Educação Especial (FastAPI)
+# Backend - API Apoio Educação Especial (FastAPI)
 
 API desenvolvida em Python com FastAPI para a Sprint 2.
 
@@ -6,7 +6,7 @@ API desenvolvida em Python com FastAPI para a Sprint 2.
 - `main.py`: Inicialização do servidor FastAPI e configuração de CORS.
 - `dados_memoria.py`: Lista de alunos em memória para a Sprint 2.
 - `schemas/aluno_schema.py`: Modelos Pydantic alinhados com o frontend.
-- `services/ia_service.py`: Integração com o Google Gemini (`gemini-2.5-flash`) via variável de ambiente `GEMINI_API_KEY`.
+- `services/ia_service.py`: Integração com o Google Gemini (`gemini-3.5-flash-lite`) via variável de ambiente `GEMINI_API_KEY`.
 - `routers/alunos_router.py`: Endpoints REST da aplicação.
 
 ## Como Executar Localmente
