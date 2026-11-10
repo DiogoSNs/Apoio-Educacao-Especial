@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from config import obter_origens_permitidas
 from routers.alunos_router import router as alunos_router
 
 # ==========================================================
@@ -15,7 +16,7 @@ app = FastAPI(
 # Permite que o frontend (Next.js) acesse a API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=obter_origens_permitidas(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
