@@ -20,6 +20,10 @@ class Anotacao(BaseModel):
     texto: str
 
 
+class RelatorioAprovar(BaseModel):
+    relatorioTexto: str = Field(..., min_length=1)
+
+
 # ==========================================================
 # 2. SCHEMAS DE ALUNO
 # ==========================================================
