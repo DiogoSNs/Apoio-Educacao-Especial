@@ -13,6 +13,18 @@ def data_hoje() -> str:
     return datetime.now().strftime("%d/%m/%Y")
 
 
+def buscar_aluno_ou_404(aluno_id: int):
+    aluno = buscar_aluno_por_id(aluno_id)
+
+    if not aluno:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Aluno não encontrado.",
+        )
+
+    return aluno
+
+
 # ==========================================================
 # ROTA 1: LISTAR ALUNOS (COM FILTRO OPCIONAL POR STATUS E BUSCA)
 # ==========================================================
@@ -97,4 +109,10 @@ def gerar_relatorio_aluno(aluno_id: int):
     aluno["ultimaAtualizacao"] = data_hoje()
 
     return aluno
+
+
+@router.delete("/{aluno_id}", status_code=status.HTTP_204_NO_CONTENT)
+def excluir_aluno(aluno_id: int):
+    aluno = buscar_aluno_ou_404(aluno_id)
+    alunos_memoria.remove(aluno)
 
