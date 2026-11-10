@@ -3,7 +3,7 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException, status
 
 from dados_memoria import alunos_memoria, buscar_aluno_por_id
-from schemas.aluno_schema import Aluno, NovaAnotacao, NovoAluno
+from schemas.aluno_schema import Aluno, NovaAnotacao, NovoAluno, RelatorioAprovar
 from services.ia_service import gerar_rascunho_ia
 
 router = APIRouter(prefix="/alunos", tags=["Alunos e Relatórios IA"])
@@ -167,4 +167,21 @@ def remover_anotacao(aluno_id: int, anotacao_id: int):
         status_code=status.HTTP_404_NOT_FOUND,
         detail="Anotação não encontrada.",
     )
+
+
+@router.put("/{aluno_id}/aprovar-relatorio", response_model=Aluno)
+def aprovar_relatorio(aluno_id: int, dados: RelatorioAprovar):
+    aluno = buscar_aluno_ou_404(aluno_id)
+
+    if dados.relatorioTexto.strip() == "":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="O relatório não pode estar vazio para ser aprovado.",
+        )
+
+    aluno["relatorioTexto"] = dados.relatorioTexto
+    aluno["statusRelatorio"] = "aprovado"
+    aluno["ultimaAtualizacao"] = data_hoje()
+
+    return aluno
 
