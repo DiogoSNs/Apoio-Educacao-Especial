@@ -1,7 +1,7 @@
-import os
-from dotenv import load_dotenv
 from fastapi import HTTPException, status
 from google import genai
+
+from config import obter_chave_gemini, obter_modelo_gemini
 
 
 # ==========================================================
@@ -9,9 +9,7 @@ from google import genai
 # Recebe o aluno, monta o prompt com as anotacoes e gera o texto
 # ==========================================================
 def gerar_rascunho_ia(aluno: dict) -> str:
-    # Recarrega o arquivo .env para ler a chave atualizada
-    load_dotenv(override=True)
-    chave_api = os.getenv("GEMINI_API_KEY", "").strip()
+    chave_api = obter_chave_gemini()
 
     # 1. Se nao tiver chave no .env, retorna um aviso claro de erro
     if not chave_api:
@@ -47,7 +45,7 @@ def gerar_rascunho_ia(aluno: dict) -> str:
     try:
         cliente = genai.Client(api_key=chave_api)
         resposta = cliente.models.generate_content(
-            model="gemini-3.5-flash-lite",
+            model=obter_modelo_gemini(),
             contents=prompt,
         )
 
