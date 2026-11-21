@@ -30,7 +30,7 @@ def gerar_rascunho_ia(aluno: dict) -> str:
         "Sua tarefa é redigir um rascunho de Relatório Individual de Acompanhamento Pedagógico em português formal, claro e objetivo.\n\n"
         "REGRAS OBRIGATÓRIAS:\n"
         "1. Baseie-se EXCLUSIVAMENTE nas anotações do professor listadas abaixo. Não invente atividades, datas ou comportamentos que não foram informados.\n"
-        "2. Não utilize formatação Markdown (não use asteriscos **, nem hashtags #). Escreva em texto puro bem organizado.\n"
+        "2. Escreva em português do Brasil com toda a acentuação e cedilha (ç) corretas, apenas sem usar asteriscos (**) ou hashtags (#).\n"
         "3. Organize o documento exatamente nestas seções:\n"
         "   - Cabeçalho com Nome do Estudante, Turma, Condição/Necessidade e Modalidade de Atendimento\n"
         "   - 1. Desenvolvimento e Adaptações Realizadas no Período (transformando as anotações em parágrafos coesos)\n"
