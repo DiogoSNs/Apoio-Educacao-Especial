@@ -3,12 +3,17 @@
 import Cabecalho from "@/components/Cabecalho";
 import CampoBusca from "@/components/CampoBusca";
 import CardAluno from "@/components/CardAluno";
+import FormularioLogin from "@/components/FormularioLogin";
 import FormularioNovoAluno from "@/components/FormularioNovoAluno";
+import MensagemFeedback from "@/components/MensagemFeedback";
 import PainelRelatorio from "@/components/PainelRelatorio";
 import { useGestaoRelatorios } from "@/hooks/useGestaoRelatorios";
 
 export default function PaginaInicial() {
   const {
+    token,
+    realizarLogin,
+    realizarLogout,
     alunos,
     alunosFiltrados,
     alunoSelecionado,
@@ -17,7 +22,10 @@ export default function PaginaInicial() {
     setFiltroStatus,
     busca,
     definirBusca,
+    carregando,
     gerandoIA,
+    erroAPI,
+    setErroAPI,
     adicionarAnotacao,
     removerAnotacao,
     adicionarNovoAluno,
@@ -27,16 +35,37 @@ export default function PaginaInicial() {
     aprovarRelatorio,
   } = useGestaoRelatorios();
 
+  // 1. Se nao tiver token JWT, exibe a tela de Login
+  if (!token) {
+    return <FormularioLogin aoLogar={realizarLogin} />;
+  }
+
   const totalAprovados = alunos.filter(
     (a) => a.statusRelatorio === "aprovado"
   ).length;
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50">
-      <Cabecalho totalAlunos={alunos.length} totalAprovados={totalAprovados} />
+      <Cabecalho
+        totalAlunos={alunos.length}
+        totalAprovados={totalAprovados}
+        aoSair={realizarLogout}
+      />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6">
-        {!alunoSelecionado ? (
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 py-6 space-y-4">
+        {/* Exibe erros vindos da API (tratamento visual de erro) */}
+        <MensagemFeedback
+          tipo="erro"
+          texto={erroAPI}
+          aoFechar={() => setErroAPI("")}
+        />
+
+        {/* Estado visual de carregamento enquanto busca na API */}
+        {carregando ? (
+          <div className="bg-white border border-slate-200 rounded-lg p-10 text-center text-sm text-slate-600">
+            Carregando dados dos alunos na API...
+          </div>
+        ) : !alunoSelecionado ? (
           <div className="space-y-5">
             <FormularioNovoAluno aoAdicionarAluno={adicionarNovoAluno} />
 
