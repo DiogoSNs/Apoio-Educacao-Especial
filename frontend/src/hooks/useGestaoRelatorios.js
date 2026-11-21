@@ -2,10 +2,14 @@
 
 import { useEffect, useState } from "react";
 import {
+  adicionarAnotacaoAPI,
+  aprovarRelatorioAPI,
   criarAlunoAPI,
+  excluirAlunoAPI,
   fazerLoginAPI,
   gerarRelatorioAPI,
   listarAlunosAPI,
+  removerAnotacaoAPI,
 } from "@/services/api";
 
 export function useGestaoRelatorios() {
@@ -80,10 +84,6 @@ export function useGestaoRelatorios() {
     return nomeConfere && statusConfere;
   });
 
-  function obterDataHoje() {
-    return new Date().toLocaleDateString("pt-BR");
-  }
-
   // ==========================================================
   // 2. CRIAR NOVO ALUNO NA API (POST /alunos)
   // ==========================================================
@@ -149,72 +149,87 @@ export function useGestaoRelatorios() {
   // ==========================================================
   // 4. FUNCOES RESTANTES (PARTE DO EDUARDO PARA LIGAR NA API)
   // ==========================================================
-  function adicionarAnotacao(categoria, texto) {
-    if (!alunoSelecionado) return;
-
-    const novaAnotacao = {
-      id: Date.now(),
-      data: obterDataHoje(),
-      categoria,
-      texto,
-    };
-
-    const listaAtualizada = alunos.map((aluno) => {
-      if (aluno.id === alunoSelecionado.id) {
-        return {
-          ...aluno,
-          ultimaAtualizacao: obterDataHoje(),
-          anotacoes: [...aluno.anotacoes, novaAnotacao],
-        };
-      }
-      return aluno;
-    });
-
-    setAlunos(listaAtualizada);
-  }
-
-  function removerAnotacao(anotacaoId) {
-    if (!alunoSelecionado) return;
-
-    const listaAtualizada = alunos.map((aluno) => {
-      if (aluno.id === alunoSelecionado.id) {
-        return {
-          ...aluno,
-          anotacoes: aluno.anotacoes.filter((a) => a.id !== anotacaoId),
-        };
-      }
-      return aluno;
-    });
-
-    setAlunos(listaAtualizada);
-  }
-
-  function excluirAluno() {
-    if (!alunoSelecionado) return;
-
-    const listaAtualizada = alunos.filter(
-      (aluno) => aluno.id !== alunoSelecionado.id
+  function substituirAlunoNaLista(alunoAtualizado) {
+    const listaAtualizada = alunos.map((aluno) =>
+      aluno.id === alunoAtualizado.id ? alunoAtualizado : aluno
     );
 
     setAlunos(listaAtualizada);
-    setAlunoSelecionadoId(null);
   }
 
-  function aprovarRelatorio() {
+  async function adicionarAnotacao(categoria, texto, callbackSucesso) {
     if (!alunoSelecionado) return;
+    setErroAPI("");
 
-    const listaAtualizada = alunos.map((aluno) => {
-      if (aluno.id === alunoSelecionado.id) {
-        return {
-          ...aluno,
-          statusRelatorio: "aprovado",
-          ultimaAtualizacao: obterDataHoje(),
-        };
+    try {
+      const alunoAtualizado = await adicionarAnotacaoAPI(
+        token,
+        alunoSelecionado.id,
+        categoria,
+        texto
+      );
+      substituirAlunoNaLista(alunoAtualizado);
+
+      if (callbackSucesso) {
+        callbackSucesso();
       }
-      return aluno;
-    });
+    } catch (erro) {
+      setErroAPI(erro.message || "Erro ao adicionar a anotação.");
+    }
+  }
 
-    setAlunos(listaAtualizada);
+  async function removerAnotacao(anotacaoId) {
+    if (!alunoSelecionado) return;
+    setErroAPI("");
+
+    try {
+      const alunoAtualizado = await removerAnotacaoAPI(
+        token,
+        alunoSelecionado.id,
+        anotacaoId
+      );
+      substituirAlunoNaLista(alunoAtualizado);
+    } catch (erro) {
+      setErroAPI(erro.message || "Erro ao remover a anotação.");
+    }
+  }
+
+  async function excluirAluno() {
+    if (!alunoSelecionado) return;
+    setErroAPI("");
+
+    try {
+      await excluirAlunoAPI(token, alunoSelecionado.id);
+
+      const listaAtualizada = alunos.filter(
+        (aluno) => aluno.id !== alunoSelecionado.id
+      );
+
+      setAlunos(listaAtualizada);
+      setAlunoSelecionadoId(null);
+    } catch (erro) {
+      setErroAPI(erro.message || "Erro ao excluir o aluno.");
+    }
+  }
+
+  async function aprovarRelatorio(callbackSucesso) {
+    if (!alunoSelecionado) return;
+    setErroAPI("");
+
+    try {
+      const alunoAtualizado = await aprovarRelatorioAPI(
+        token,
+        alunoSelecionado.id,
+        alunoSelecionado.relatorioTexto
+      );
+      substituirAlunoNaLista(alunoAtualizado);
+
+      if (callbackSucesso) {
+        callbackSucesso();
+      }
+    } catch (erro) {
+      setErroAPI(erro.message || "Erro ao aprovar o relatório.");
+    }
   }
 
   return {
