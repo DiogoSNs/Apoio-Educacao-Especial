@@ -66,10 +66,12 @@ export default function PainelRelatorio({
       return;
     }
 
-    aoAprovarRelatorio();
-    setFeedbackIA({
-      tipo: "sucesso",
-      texto: "Relatório salvo como Aprovado!",
+    setFeedbackIA({ tipo: "", texto: "" });
+    aoAprovarRelatorio(() => {
+      setFeedbackIA({
+        tipo: "sucesso",
+        texto: "Relatório salvo como Aprovado!",
+      });
     });
   }
 
