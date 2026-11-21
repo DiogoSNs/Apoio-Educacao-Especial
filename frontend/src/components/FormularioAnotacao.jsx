@@ -20,11 +20,13 @@ export default function FormularioAnotacao({ aoAdicionar }) {
       return;
     }
 
-    aoAdicionar(categoria, texto.trim());
-    setTexto("");
-    setFeedback({
-      tipo: "sucesso",
-      texto: "Observação registrada com sucesso no histórico do aluno!",
+    setFeedback({ tipo: "", texto: "" });
+    aoAdicionar(categoria, texto.trim(), () => {
+      setTexto("");
+      setFeedback({
+        tipo: "sucesso",
+        texto: "Observação registrada com sucesso no histórico do aluno!",
+      });
     });
   }
 

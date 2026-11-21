@@ -1,8 +1,17 @@
+import os
+
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routers.alunos_router import router as alunos_router
 from routers.auth_router import router as auth_router
+
+load_dotenv()
+
+origens_permitidas = [
+    origem.strip() for origem in os.getenv("ORIGENS_PERMITIDAS", "*").split(",")
+]
 
 # ==========================================================
 # CONFIGURACAO PRINCIPAL DO FASTAPI
@@ -16,7 +25,7 @@ app = FastAPI(
 # Permite que o frontend (Next.js) acesse a API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origens_permitidas,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

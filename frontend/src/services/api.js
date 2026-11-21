@@ -79,3 +79,82 @@ export async function gerarRelatorioAPI(token, alunoId) {
 
   return dados;
 }
+
+function mensagemDoErro(dados, mensagemPadrao) {
+  if (typeof dados.detail === "string") {
+    return dados.detail;
+  }
+  return mensagemPadrao;
+}
+
+export async function adicionarAnotacaoAPI(token, alunoId, categoria, texto) {
+  const resposta = await fetch(`${URL_API}/alunos/${alunoId}/anotacoes`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ categoria, texto }),
+  });
+
+  const dados = await resposta.json();
+
+  if (!resposta.ok) {
+    throw new Error(mensagemDoErro(dados, "Erro ao adicionar a anotação."));
+  }
+
+  return dados;
+}
+
+export async function removerAnotacaoAPI(token, alunoId, anotacaoId) {
+  const resposta = await fetch(
+    `${URL_API}/alunos/${alunoId}/anotacoes/${anotacaoId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  const dados = await resposta.json();
+
+  if (!resposta.ok) {
+    throw new Error(mensagemDoErro(dados, "Erro ao remover a anotação."));
+  }
+
+  return dados;
+}
+
+export async function excluirAlunoAPI(token, alunoId) {
+  const resposta = await fetch(`${URL_API}/alunos/${alunoId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!resposta.ok) {
+    const dados = await resposta.json();
+    throw new Error(mensagemDoErro(dados, "Erro ao excluir o aluno."));
+  }
+}
+
+export async function aprovarRelatorioAPI(token, alunoId, relatorioTexto) {
+  const resposta = await fetch(`${URL_API}/alunos/${alunoId}/aprovar-relatorio`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ relatorioTexto }),
+  });
+
+  const dados = await resposta.json();
+
+  if (!resposta.ok) {
+    throw new Error(mensagemDoErro(dados, "Erro ao aprovar o relatório."));
+  }
+
+  return dados;
+}

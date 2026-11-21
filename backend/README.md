@@ -30,7 +30,10 @@ pip install -r requirements.txt
 4. Crie um arquivo `.env` na pasta `backend/` baseado no `.env.example`:
 ```env
 GEMINI_API_KEY=sua_chave_aqui
+ORIGENS_PERMITIDAS=http://localhost:3000
 ```
+
+`ORIGENS_PERMITIDAS` define quais endereços podem chamar a API (CORS). Para mais de um, separe por vírgula. Sem ela, a API aceita qualquer origem.
 
 5. Inicie o servidor:
 ```bash
