@@ -1,6 +1,6 @@
-import { FiBookOpen, FiUser } from "react-icons/fi";
+import { FiBookOpen, FiLogOut, FiUser } from "react-icons/fi";
 
-export default function Cabecalho({ totalAlunos, totalAprovados }) {
+export default function Cabecalho({ totalAlunos, totalAprovados, aoSair }) {
   return (
     <header className="bg-blue-800 text-white border-b border-blue-900 shadow-xs">
       <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -9,9 +9,7 @@ export default function Cabecalho({ totalAlunos, totalAprovados }) {
             <FiBookOpen className="w-6 h-6 text-blue-100" />
           </div>
           <div>
-            <h1 className="text-lg font-bold">
-              Apoio Educação Especial
-            </h1>
+            <h1 className="text-lg font-bold">Apoio Educação Especial</h1>
             <p className="text-xs text-blue-200">
               Registro de observações diárias e geração assistida de relatórios pedagógicos
             </p>
@@ -30,9 +28,22 @@ export default function Cabecalho({ totalAlunos, totalAprovados }) {
             <FiUser className="w-4 h-4" />
             <span>Prof. Sala de Recursos</span>
           </div>
+          {aoSair && (
+            <>
+              <span className="text-blue-400">|</span>
+              <button
+                type="button"
+                onClick={aoSair}
+                className="inline-flex items-center gap-1 text-red-200 hover:text-white font-medium cursor-pointer"
+                title="Encerrar sessão"
+              >
+                <FiLogOut className="w-3.5 h-3.5" />
+                Sair
+              </button>
+            </>
+          )}
         </div>
       </div>
     </header>
   );
 }
-
