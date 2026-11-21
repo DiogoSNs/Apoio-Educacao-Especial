@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from routers.alunos_router import router as alunos_router
+from routers.auth_router import router as auth_router
 
 # ==========================================================
 # CONFIGURACAO PRINCIPAL DO FASTAPI
@@ -21,7 +22,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Registra as rotas de alunos e relatorios
+# Registra as rotas de autenticacao e de alunos
+app.include_router(auth_router)
 app.include_router(alunos_router)
 
 
@@ -32,4 +34,3 @@ def rota_inicial():
         "status": "online",
         "documentacao": "/docs",
     }
-
