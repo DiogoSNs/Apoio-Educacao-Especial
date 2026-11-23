@@ -3,6 +3,14 @@ from dotenv import load_dotenv
 from fastapi import HTTPException, status
 from google import genai
 
+# Lista de modelos do Gemini em ordem de prioridade (se um estiver com fila 503, tenta o proximo)
+MODELOS_GEMINI = [
+    "gemini-3.6-flash",
+    "gemini-3-flash-preview",
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
+]
+
 
 # ==========================================================
 # FUNCAO PRINCIPAL DA IA (GOOGLE GEMINI)
@@ -43,26 +51,23 @@ def gerar_rascunho_ia(aluno: dict) -> str:
         f"ANOTAÇÕES REGISTRADAS PELO PROFESSOR:\n{linhas_anotacoes}"
     )
 
-    # 3. Chama a API do Google Gemini
-    try:
-        cliente = genai.Client(api_key=chave_api)
-        resposta = cliente.models.generate_content(
-            model="gemini-3.5-flash-lite",
-            contents=prompt,
-        )
+    # 3. Chama a API do Google Gemini tentando os modelos da lista
+    cliente = genai.Client(api_key=chave_api)
+    ultimo_erro = ""
 
-        if not resposta or not resposta.text:
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail="A API do Gemini retornou uma resposta vazia.",
+    for nome_modelo in MODELOS_GEMINI:
+        try:
+            resposta = cliente.models.generate_content(
+                model=nome_modelo,
+                contents=prompt,
             )
+            if resposta and resposta.text:
+                return resposta.text.strip()
+        except Exception as erro:
+            ultimo_erro = str(erro)
+            continue
 
-        return resposta.text.strip()
-
-    except HTTPException:
-        raise
-    except Exception as erro:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Erro ao comunicar com a API do Gemini: {str(erro)}",
-        )
+    raise HTTPException(
+        status_code=status.HTTP_502_BAD_GATEWAY,
+        detail=f"Erro ao comunicar com a API do Gemini: {ultimo_erro}",
+    )
