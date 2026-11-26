@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from database import iniciar_banco
 from routers.alunos_router import router as alunos_router
 from routers.auth_router import router as auth_router
 
@@ -21,6 +22,9 @@ app = FastAPI(
     description="API para gerenciamento de observações diárias e geração de relatórios individuais com IA.",
     version="1.0.0",
 )
+
+# Cria as tabelas no banco de dados (Neon PostgreSQL / SQLite) ao iniciar
+iniciar_banco()
 
 # Permite que o frontend (Next.js) acesse a API
 app.add_middleware(
