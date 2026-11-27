@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
 from auth.jwt_auth import verificar_token
-from dados_memoria import alunos_memoria, buscar_aluno_por_id
 from database import obter_sessao
 from models.modelos_db import AlunoDB, AnotacaoDB
 from schemas.aluno_schema import Aluno, NovaAnotacao, NovoAluno, RelatorioAprovar
@@ -151,18 +150,6 @@ def gerar_relatorio_aluno(
 # ==========================================================
 # PARTE DO EDUARDO (SPRINT 4: PASSAR ESTAS 4 ROTAS PARA SQLMODEL)
 # ==========================================================
-def buscar_aluno_ou_404(aluno_id: int):
-    aluno = buscar_aluno_por_id(aluno_id)
-
-    if not aluno:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Aluno não encontrado.",
-        )
-
-    return aluno
-
-
 @router.delete("/{aluno_id}", status_code=status.HTTP_204_NO_CONTENT)
 def excluir_aluno(
     aluno_id: int,
@@ -235,9 +222,10 @@ def remover_anotacao(
 def aprovar_relatorio(
     aluno_id: int,
     dados: RelatorioAprovar,
+    sessao: Session = Depends(obter_sessao),
     usuario: str = Depends(verificar_token),
 ):
-    aluno = buscar_aluno_ou_404(aluno_id)
+    aluno = buscar_aluno_no_banco(sessao, aluno_id)
 
     if dados.relatorioTexto.strip() == "":
         raise HTTPException(
@@ -245,8 +233,12 @@ def aprovar_relatorio(
             detail="O relatório não pode estar vazio para ser aprovado.",
         )
 
-    aluno["relatorioTexto"] = dados.relatorioTexto
-    aluno["statusRelatorio"] = "aprovado"
-    aluno["ultimaAtualizacao"] = data_hoje()
+    aluno.relatorioTexto = dados.relatorioTexto
+    aluno.statusRelatorio = "aprovado"
+    aluno.ultimaAtualizacao = data_hoje()
+
+    sessao.add(aluno)
+    sessao.commit()
+    sessao.refresh(aluno)
 
     return aluno
