@@ -147,9 +147,6 @@ def gerar_relatorio_aluno(
     return aluno
 
 
-# ==========================================================
-# PARTE DO EDUARDO (SPRINT 4: PASSAR ESTAS 4 ROTAS PARA SQLMODEL)
-# ==========================================================
 @router.delete("/{aluno_id}", status_code=status.HTTP_204_NO_CONTENT)
 def excluir_aluno(
     aluno_id: int,
