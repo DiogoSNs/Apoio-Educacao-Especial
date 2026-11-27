@@ -151,17 +151,6 @@ def gerar_relatorio_aluno(
 # ==========================================================
 # PARTE DO EDUARDO (SPRINT 4: PASSAR ESTAS 4 ROTAS PARA SQLMODEL)
 # ==========================================================
-def proximo_id_anotacao() -> int:
-    maior_id = 0
-
-    for aluno in alunos_memoria:
-        for anotacao in aluno["anotacoes"]:
-            if anotacao["id"] > maior_id:
-                maior_id = anotacao["id"]
-
-    return maior_id + 1
-
-
 def buscar_aluno_ou_404(aluno_id: int):
     aluno = buscar_aluno_por_id(aluno_id)
 
@@ -191,9 +180,10 @@ def excluir_aluno(
 def adicionar_anotacao(
     aluno_id: int,
     dados: NovaAnotacao,
+    sessao: Session = Depends(obter_sessao),
     usuario: str = Depends(verificar_token),
 ):
-    aluno = buscar_aluno_ou_404(aluno_id)
+    aluno = buscar_aluno_no_banco(sessao, aluno_id)
 
     texto = dados.texto.strip()
 
@@ -203,15 +193,17 @@ def adicionar_anotacao(
             detail="A observação deve ter pelo menos 10 caracteres.",
         )
 
-    nova_anotacao = {
-        "id": proximo_id_anotacao(),
-        "data": data_hoje(),
-        "categoria": dados.categoria.strip(),
-        "texto": texto,
-    }
+    nova_anotacao = AnotacaoDB(
+        data=data_hoje(),
+        categoria=dados.categoria.strip(),
+        texto=texto,
+        aluno_id=aluno.id,
+    )
+    aluno.ultimaAtualizacao = data_hoje()
 
-    aluno["anotacoes"].append(nova_anotacao)
-    aluno["ultimaAtualizacao"] = data_hoje()
+    sessao.add(nova_anotacao)
+    sessao.commit()
+    sessao.refresh(aluno)
 
     return aluno
 
@@ -220,19 +212,23 @@ def adicionar_anotacao(
 def remover_anotacao(
     aluno_id: int,
     anotacao_id: int,
+    sessao: Session = Depends(obter_sessao),
     usuario: str = Depends(verificar_token),
 ):
-    aluno = buscar_aluno_ou_404(aluno_id)
+    aluno = buscar_aluno_no_banco(sessao, aluno_id)
+    anotacao = sessao.get(AnotacaoDB, anotacao_id)
 
-    for anotacao in aluno["anotacoes"]:
-        if anotacao["id"] == anotacao_id:
-            aluno["anotacoes"].remove(anotacao)
-            return aluno
+    if not anotacao or anotacao.aluno_id != aluno.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Anotação não encontrada.",
+        )
 
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="Anotação não encontrada.",
-    )
+    sessao.delete(anotacao)
+    sessao.commit()
+    sessao.refresh(aluno)
+
+    return aluno
 
 
 @router.put("/{aluno_id}/aprovar-relatorio", response_model=Aluno)
