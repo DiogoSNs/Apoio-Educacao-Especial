@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
 from auth.jwt_auth import verificar_token
-from dados_memoria import alunos_memoria, buscar_aluno_por_id
 from database import obter_sessao
 from models.modelos_db import AlunoDB, AnotacaoDB
 from schemas.aluno_schema import Aluno, NovaAnotacao, NovoAluno, RelatorioAprovar
@@ -15,6 +14,18 @@ router = APIRouter(prefix="/alunos", tags=["Alunos e Relatórios IA"])
 
 def data_hoje() -> str:
     return datetime.now().strftime("%d/%m/%Y")
+
+
+def buscar_aluno_no_banco(sessao: Session, aluno_id: int) -> AlunoDB:
+    aluno = sessao.get(AlunoDB, aluno_id)
+
+    if not aluno:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Aluno não encontrado.",
+        )
+
+    return aluno
 
 
 # ==========================================================
@@ -136,45 +147,27 @@ def gerar_relatorio_aluno(
     return aluno
 
 
-# ==========================================================
-# PARTE DO EDUARDO (SPRINT 4: PASSAR ESTAS 4 ROTAS PARA SQLMODEL)
-# ==========================================================
-def proximo_id_anotacao() -> int:
-    maior_id = 0
-
-    for aluno in alunos_memoria:
-        for anotacao in aluno["anotacoes"]:
-            if anotacao["id"] > maior_id:
-                maior_id = anotacao["id"]
-
-    return maior_id + 1
-
-
-def buscar_aluno_ou_404(aluno_id: int):
-    aluno = buscar_aluno_por_id(aluno_id)
-
-    if not aluno:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Aluno não encontrado.",
-        )
-
-    return aluno
-
-
 @router.delete("/{aluno_id}", status_code=status.HTTP_204_NO_CONTENT)
-def excluir_aluno(aluno_id: int, usuario: str = Depends(verificar_token)):
-    aluno = buscar_aluno_ou_404(aluno_id)
-    alunos_memoria.remove(aluno)
+def excluir_aluno(
+    aluno_id: int,
+    sessao: Session = Depends(obter_sessao),
+    usuario: str = Depends(verificar_token),
+):
+    aluno = buscar_aluno_no_banco(sessao, aluno_id)
+
+    # o cascade do modelo apaga as anotacoes junto
+    sessao.delete(aluno)
+    sessao.commit()
 
 
 @router.post("/{aluno_id}/anotacoes", response_model=Aluno, status_code=status.HTTP_201_CREATED)
 def adicionar_anotacao(
     aluno_id: int,
     dados: NovaAnotacao,
+    sessao: Session = Depends(obter_sessao),
     usuario: str = Depends(verificar_token),
 ):
-    aluno = buscar_aluno_ou_404(aluno_id)
+    aluno = buscar_aluno_no_banco(sessao, aluno_id)
 
     texto = dados.texto.strip()
 
@@ -184,15 +177,17 @@ def adicionar_anotacao(
             detail="A observação deve ter pelo menos 10 caracteres.",
         )
 
-    nova_anotacao = {
-        "id": proximo_id_anotacao(),
-        "data": data_hoje(),
-        "categoria": dados.categoria.strip(),
-        "texto": texto,
-    }
+    nova_anotacao = AnotacaoDB(
+        data=data_hoje(),
+        categoria=dados.categoria.strip(),
+        texto=texto,
+        aluno_id=aluno.id,
+    )
+    aluno.ultimaAtualizacao = data_hoje()
 
-    aluno["anotacoes"].append(nova_anotacao)
-    aluno["ultimaAtualizacao"] = data_hoje()
+    sessao.add(nova_anotacao)
+    sessao.commit()
+    sessao.refresh(aluno)
 
     return aluno
 
@@ -201,28 +196,33 @@ def adicionar_anotacao(
 def remover_anotacao(
     aluno_id: int,
     anotacao_id: int,
+    sessao: Session = Depends(obter_sessao),
     usuario: str = Depends(verificar_token),
 ):
-    aluno = buscar_aluno_ou_404(aluno_id)
+    aluno = buscar_aluno_no_banco(sessao, aluno_id)
+    anotacao = sessao.get(AnotacaoDB, anotacao_id)
 
-    for anotacao in aluno["anotacoes"]:
-        if anotacao["id"] == anotacao_id:
-            aluno["anotacoes"].remove(anotacao)
-            return aluno
+    if not anotacao or anotacao.aluno_id != aluno.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Anotação não encontrada.",
+        )
 
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="Anotação não encontrada.",
-    )
+    sessao.delete(anotacao)
+    sessao.commit()
+    sessao.refresh(aluno)
+
+    return aluno
 
 
 @router.put("/{aluno_id}/aprovar-relatorio", response_model=Aluno)
 def aprovar_relatorio(
     aluno_id: int,
     dados: RelatorioAprovar,
+    sessao: Session = Depends(obter_sessao),
     usuario: str = Depends(verificar_token),
 ):
-    aluno = buscar_aluno_ou_404(aluno_id)
+    aluno = buscar_aluno_no_banco(sessao, aluno_id)
 
     if dados.relatorioTexto.strip() == "":
         raise HTTPException(
@@ -230,8 +230,12 @@ def aprovar_relatorio(
             detail="O relatório não pode estar vazio para ser aprovado.",
         )
 
-    aluno["relatorioTexto"] = dados.relatorioTexto
-    aluno["statusRelatorio"] = "aprovado"
-    aluno["ultimaAtualizacao"] = data_hoje()
+    aluno.relatorioTexto = dados.relatorioTexto
+    aluno.statusRelatorio = "aprovado"
+    aluno.ultimaAtualizacao = data_hoje()
+
+    sessao.add(aluno)
+    sessao.commit()
+    sessao.refresh(aluno)
 
     return aluno
