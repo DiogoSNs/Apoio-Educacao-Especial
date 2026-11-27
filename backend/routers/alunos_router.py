@@ -17,6 +17,18 @@ def data_hoje() -> str:
     return datetime.now().strftime("%d/%m/%Y")
 
 
+def buscar_aluno_no_banco(sessao: Session, aluno_id: int) -> AlunoDB:
+    aluno = sessao.get(AlunoDB, aluno_id)
+
+    if not aluno:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Aluno não encontrado.",
+        )
+
+    return aluno
+
+
 # ==========================================================
 # ROTA 1: LISTAR ALUNOS DO BANCO DE DADOS (SQLMODEL)
 # ==========================================================
@@ -163,9 +175,16 @@ def buscar_aluno_ou_404(aluno_id: int):
 
 
 @router.delete("/{aluno_id}", status_code=status.HTTP_204_NO_CONTENT)
-def excluir_aluno(aluno_id: int, usuario: str = Depends(verificar_token)):
-    aluno = buscar_aluno_ou_404(aluno_id)
-    alunos_memoria.remove(aluno)
+def excluir_aluno(
+    aluno_id: int,
+    sessao: Session = Depends(obter_sessao),
+    usuario: str = Depends(verificar_token),
+):
+    aluno = buscar_aluno_no_banco(sessao, aluno_id)
+
+    # o cascade do modelo apaga as anotacoes junto
+    sessao.delete(aluno)
+    sessao.commit()
 
 
 @router.post("/{aluno_id}/anotacoes", response_model=Aluno, status_code=status.HTTP_201_CREATED)
