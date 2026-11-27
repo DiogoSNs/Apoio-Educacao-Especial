@@ -1,13 +1,16 @@
 # Backend - API Apoio Educação Especial (FastAPI)
 
-API desenvolvida em Python com FastAPI para a Sprint 2.
+API desenvolvida em Python com FastAPI, SQLModel (PostgreSQL no Neon DB), autenticação JWT e integração com Google Gemini.
 
 ## Estrutura de Pastas
-- `main.py`: Inicialização do servidor FastAPI e configuração de CORS.
-- `dados_memoria.py`: Lista de alunos em memória para a Sprint 2.
+- `main.py`: Inicialização do servidor FastAPI, configuração de CORS e inicialização do banco.
+- `database.py`: Conexão do SQLModel com o PostgreSQL (`DATABASE_URL`) e carga inicial das tabelas.
+- `models/modelos_db.py`: Modelos das tabelas `AlunoDB` e `AnotacaoDB` com relacionamento `1:N`.
+- `auth/jwt_auth.py`: Geração e verificação do token JWT (`JWT_SECRET`).
 - `schemas/aluno_schema.py`: Modelos Pydantic alinhados com o frontend.
-- `services/ia_service.py`: Integração com o Google Gemini (`gemini-3.5-flash-lite`) via variável de ambiente `GEMINI_API_KEY`.
-- `routers/alunos_router.py`: Endpoints REST da aplicação.
+- `services/ia_service.py`: Integração com o Google Gemini via variável de ambiente `GEMINI_API_KEY`.
+- `routers/auth_router.py`: Rota de autenticação (`POST /auth/login`).
+- `routers/alunos_router.py`: Rotas protegidas por JWT para alunos, anotações e relatórios com IA.
 
 ## Como Executar Localmente
 
@@ -16,7 +19,7 @@ API desenvolvida em Python com FastAPI para a Sprint 2.
 cd backend
 ```
 
-2. Crie e ative o ambiente virtual (opcional, mas recomendado):
+2. Crie e ative o ambiente virtual:
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
@@ -30,10 +33,10 @@ pip install -r requirements.txt
 4. Crie um arquivo `.env` na pasta `backend/` baseado no `.env.example`:
 ```env
 GEMINI_API_KEY=sua_chave_aqui
+JWT_SECRET=chave_secreta_jwt_educacao_especial
 ORIGENS_PERMITIDAS=http://localhost:3000
+DATABASE_URL=postgresql://usuario:senha@host.neon.tech/neondb?sslmode=require
 ```
-
-`ORIGENS_PERMITIDAS` define quais endereços podem chamar a API (CORS). Para mais de um, separe por vírgula. Sem ela, a API aceita qualquer origem.
 
 5. Inicie o servidor:
 ```bash
